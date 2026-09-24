@@ -7,6 +7,13 @@
         public string PassportNb { get; set; } = "";
         public string From { get; set; } = "";
         public string To { get; set; } = "";
-        public int status { get; set; } 
+        public int status { get; set; }
+
+        // Foreign key for Flight
+        public int FlightId { get; set; }
+
+        // Navigation properties
+        public Flight? Flight { get; set; }
+        public ICollection<Payment> Payments { get; set; } = new List<Payment>();
     }
 }
