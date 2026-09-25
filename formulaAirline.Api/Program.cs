@@ -1,4 +1,5 @@
 using formulaAirline.Api.Data;
+using formulaAirline.Api.Mappings;
 using formulaAirline.Api.Repository;
 using formulaAirline.Api.Services;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,9 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // Add DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 

@@ -1,4 +1,5 @@
-﻿using formulaAirline.Api.Model;
+﻿using AutoMapper;
+using formulaAirline.Api.Model;
 using formulaAirline.Api.Repository;
 using formulaAirline.Api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -13,17 +14,20 @@ namespace formulaAirline.Api.Controllers
         private readonly IMessageProducer _messageProducer;
         private readonly IRepository<Booking> _bookingRepository;
         private readonly IFlightService _flightService;
+        private readonly IMapper _mapper;
 
         public BookingController(
             ILogger<BookingController> logger,
             IMessageProducer messageProducer,
             IRepository<Booking> bookingRepository,
-            IFlightService flightService)
+            IFlightService flightService,
+            IMapper mapper)
         {
             _logger = logger;
             _messageProducer = messageProducer;
             _bookingRepository = bookingRepository;
             _flightService = flightService;
+            _mapper = mapper;
         }
 
         [HttpGet("{id}")]
@@ -35,7 +39,8 @@ namespace formulaAirline.Api.Controllers
                 if (booking == null)
                     return NotFound($"Booking with ID {id} not found");
 
-                return Ok(booking);
+                var bookingDto = _mapper.Map<BookingDto>(booking);
+                return Ok(bookingDto);
             }
             catch (Exception ex)
             {
@@ -50,7 +55,8 @@ namespace formulaAirline.Api.Controllers
             try
             {
                 var bookings = await _bookingRepository.GetAllAsync();
-                return Ok(bookings);
+                var bookingDtos = _mapper.Map<IEnumerable<BookingDto>>(bookings);
+                return Ok(bookingDtos);
             }
             catch (Exception ex)
             {
@@ -82,11 +88,15 @@ namespace formulaAirline.Api.Controllers
                 booking.status = 1; // Confirmed status
                 await _bookingRepository.AddAsync(booking);
 
+                // Map to DTO to avoid circular reference during serialization
+                var bookingDto = _mapper.Map<BookingDto>(booking);
+
                 // Send message through message producer
-                _messageProducer.SendingMessages<Booking>(booking);
+                _messageProducer.SendingMessages<BookingDto>(bookingDto);
 
                 _logger.LogInformation($"Booking created successfully for passenger {booking.PassangerName}");
-                return CreatedAtAction(nameof(GetBooking), new { id = booking.Id }, booking);
+
+                return CreatedAtAction(nameof(GetBooking), new { id = booking.Id }, bookingDto);
             }
             catch (Exception ex)
             {
@@ -157,7 +167,8 @@ namespace formulaAirline.Api.Controllers
                 if (!bookings.Any())
                     return NotFound($"No bookings found for passenger {passengerName}");
 
-                return Ok(bookings);
+                var bookingDtos = _mapper.Map<IEnumerable<BookingDto>>(bookings);
+                return Ok(bookingDtos);
             }
             catch (Exception ex)
             {

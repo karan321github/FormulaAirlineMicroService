@@ -17,6 +17,25 @@ namespace formulaAirline.Api.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Maps a Flight entity to FlightDto to prevent circular reference issues during serialization
+        /// </summary>
+        private FlightDto MapToDto(Flight flight)
+        {
+            return new FlightDto
+            {
+                Id = flight.Id,
+                FlightNumber = flight.FlightNumber,
+                Departure = flight.Departure,
+                Arrival = flight.Arrival,
+                Capacity = flight.Capacity,
+                AvailableSeats = flight.AvailableSeats,
+                DepartureTime = flight.DepartureTime,
+                ArrivalTime = flight.ArrivalTime,
+                Price = flight.Price
+            };
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetFlight(int id)
         {
@@ -26,7 +45,7 @@ namespace formulaAirline.Api.Controllers
                 if (flight == null)
                     return NotFound($"Flight with ID {id} not found");
 
-                return Ok(flight);
+                return Ok(MapToDto(flight));
             }
             catch (Exception ex)
             {
@@ -41,7 +60,8 @@ namespace formulaAirline.Api.Controllers
             try
             {
                 var flights = await _flightService.GetAllFlightsAsync();
-                return Ok(flights);
+                var flightDtos = flights.Select(MapToDto).ToList();
+                return Ok(flightDtos);
             }
             catch (Exception ex)
             {
@@ -59,7 +79,8 @@ namespace formulaAirline.Api.Controllers
                     return BadRequest("Departure and arrival locations are required");
 
                 var flights = await _flightService.SearchFlightsAsync(departure, arrival);
-                return Ok(flights);
+                var flightDtos = flights.Select(MapToDto).ToList();
+                return Ok(flightDtos);
             }
             catch (Exception ex)
             {
@@ -77,7 +98,8 @@ namespace formulaAirline.Api.Controllers
                     return BadRequest(ModelState);
 
                 var createdFlight = await _flightService.CreateFlightAsync(flight);
-                return CreatedAtAction(nameof(GetFlight), new { id = createdFlight.Id }, createdFlight);
+                var flightDto = MapToDto(createdFlight);
+                return CreatedAtAction(nameof(GetFlight), new { id = createdFlight.Id }, flightDto);
             }
             catch (Exception ex)
             {
