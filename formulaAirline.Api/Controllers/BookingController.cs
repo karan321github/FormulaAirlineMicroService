@@ -176,5 +176,42 @@ namespace formulaAirline.Api.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        [HttpGet("bookings/{flightId}")]
+        public async Task<IActionResult> GetAllBookingsByFlight(int flightId)
+        {
+            try
+            {
+                var bookings = await _bookingRepository.FindAsync(b => b.FlightId == flightId);
+                if (!bookings.Any())
+                    return NotFound($"No bookings found for flight ID {flightId}");
+                var bookingDtos = _mapper.Map<IEnumerable<BookingDto>>(bookings);
+                return Ok(bookingDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error retrieving bookings by flight: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("bookings/user/{userId}")]
+        public async Task<IActionResult> GetAllBookingsByUser(string userId)
+        {
+            try
+            {
+                var bookings = await _bookingRepository.FindAsync(b => b.UserId == userId);
+                if (!bookings.Any())
+                    return NotFound($"No bookings found for user ID {userId}");
+                var bookingDtos = _mapper.Map<IEnumerable<BookingDto>>(bookings);
+                return Ok(bookingDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error retrieving bookings by user: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
     }
 }

@@ -11,7 +11,7 @@
 
         // Foreign key for Flight
         public int FlightId { get; set; }
-
+        public string UserId { get; set; } = ""; // Foreign key for User
         // Navigation properties
         public Flight? Flight { get; set; }
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();

@@ -12,6 +12,7 @@ namespace formulaAirline.Api.Data
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Flight> Flights { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -55,6 +56,17 @@ namespace formulaAirline.Api.Data
                 entity.Property(e => e.TransactionId).HasMaxLength(50);
                 entity.Property(e => e.PaymentDate).IsRequired();
                 entity.HasOne(e => e.Booking).WithMany(b => b.Payments).HasForeignKey(e => e.BookingId);
+            });
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Email).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Password).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Role).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.Phone).HasMaxLength(20);
+                entity.HasMany(e => e.Bookings).WithOne().HasForeignKey("UserId").OnDelete(DeleteBehavior.Cascade);
             });
         }
     }
